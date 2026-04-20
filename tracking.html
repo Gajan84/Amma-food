@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Like Ammas Food – Bestellung verfolgen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --beige:#F2E8D5; --beige-dark:#E0CBA8; --beige-deep:#C9AD80;
+  --card:#EDE0C8; --card2:#E5D5B0;
+  --brown:#6B4C1E; --brown-lt:#8B6530;
+  --gold:#A0720A; --gold-lt:#C49020;
+  --text:#3D2B0E; --text-dim:rgba(61,43,14,0.6);
+  --border:rgba(107,76,30,0.22);
+  --green:#25D366; --orange:#E65100;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family:'Lato',sans-serif;
+  background:var(--beige);
+  color:var(--text);
+  min-height:100vh;
+}
+
+/* MANDALA BG */
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23C49020' transform='translate(90,90)'%3E%3Ccircle r='80' stroke-width='0.8'/%3E%3Ccircle r='65' stroke-width='0.5'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(45)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(90)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(135)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(180)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(225)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(270)' stroke-width='1'/%3E%3Cellipse rx='8' ry='15' transform='translate(0,-80) rotate(315)' stroke-width='1'/%3E%3Ccircle r='45' stroke-width='0.8'/%3E%3Ccircle r='28' stroke-width='0.6'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:180px 180px;
+}
+body > * { position:relative; z-index:1; }
+
+/* TOP BAR */
+.top-bar {
+  background:var(--brown); padding:12px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.top-bar h1 { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:900; color:var(--beige); }
+.top-bar .sub { font-size:10px; color:var(--beige-deep); letter-spacing:2px; text-transform:uppercase; }
+.live-dot {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:11px; color:#4CAF50; font-weight:700;
+}
+.live-dot::before {
+  content:''; width:8px; height:8px; border-radius:50%; background:#4CAF50;
+  animation:pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.5;transform:scale(1.3);} }
+
+/* SEARCH BOX */
+.search-section {
+  max-width:500px; margin:24px auto; padding:0 20px;
+}
+.search-title {
+  font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:700;
+  color:var(--brown); text-align:center; margin-bottom:14px;
+}
+.search-box {
+  display:flex; gap:8px;
+}
+.search-input {
+  flex:1; padding:12px 16px; border-radius:10px;
+  border:1.5px solid var(--border); background:var(--card);
+  font-size:14px; font-family:'Lato',sans-serif; color:var(--text); outline:none;
+  transition:border-color 0.2s;
+}
+.search-input:focus { border-color:var(--brown); }
+.search-input::placeholder { color:var(--text-dim); }
+.search-btn {
+  padding:12px 18px; background:var(--brown); color:var(--beige);
+  border:none; border-radius:10px; font-size:13px; font-weight:700;
+  cursor:pointer; font-family:'Lato',sans-serif; transition:all 0.15s;
+  white-space:nowrap;
+}
+.search-btn:hover { background:var(--brown-lt); }
+
+/* TRACKING CARD */
+.tracking-card {
+  max-width:500px; margin:0 auto 20px; padding:0 20px;
+  display:none;
+}
+.tracking-card.show { display:block; }
+
+/* STATUS HEADER */
+.status-header {
+  background:var(--brown); border-radius:16px 16px 0 0;
+  padding:20px; text-align:center; position:relative; overflow:hidden;
+}
+.status-header::before {
+  content:''; position:absolute; inset:0; opacity:0.06;
+  background:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 1px,transparent 8px);
+}
+.status-emoji { font-size:48px; margin-bottom:8px; display:block; }
+.status-title { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:var(--beige); margin-bottom:4px; }
+.status-subtitle { font-size:13px; color:var(--beige-deep); }
+
+/* COUNTER BOX */
+.counter-box {
+  background:var(--card); border-radius:0 0 16px 16px;
+  border:1px solid var(--border); border-top:none;
+  padding:20px; box-shadow:0 4px 20px rgba(107,76,30,0.12);
+}
+
+/* BIG COUNTER */
+.big-counter {
+  text-align:center; padding:20px 0 16px;
+  border-bottom:1px solid var(--border); margin-bottom:16px;
+}
+.counter-num {
+  font-family:'Playfair Display',serif;
+  font-size:5rem; font-weight:900; color:var(--brown);
+  line-height:1; display:block;
+  transition:all 0.5s ease;
+}
+.counter-num.bounce {
+  animation:bounce 0.4s ease;
+}
+@keyframes bounce {
+  0%  { transform:scale(1); }
+  30% { transform:scale(1.3); }
+  60% { transform:scale(0.95); }
+  100%{ transform:scale(1); }
+}
+.counter-label { font-size:13px; color:var(--text-dim); margin-top:4px; }
+
+/* TIME ESTIMATE */
+.time-estimate {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  background:var(--beige); border-radius:12px; padding:14px;
+  margin-bottom:16px; border:1px solid var(--border);
+}
+.time-icon { font-size:28px; }
+.time-text { }
+.time-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); font-weight:700; }
+.time-value { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:900; color:var(--brown); }
+.time-sub { font-size:11px; color:var(--text-dim); }
+
+/* QUEUE VISUALIZATION */
+.queue-viz {
+  margin-bottom:16px;
+}
+.queue-title { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:10px; }
+.queue-row { display:flex; gap:6px; flex-wrap:wrap; }
+.queue-dot {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; transition:all 0.4s ease;
+  border:2px solid var(--border);
+}
+.queue-dot.before { background:var(--brown); border-color:var(--brown); }
+.queue-dot.me { background:var(--gold-lt); border-color:var(--gold); animation:myPulse 2s ease-in-out infinite; }
+.queue-dot.after { background:var(--beige-dark); }
+@keyframes myPulse {
+  0%,100%{ box-shadow:0 0 0 0 rgba(160,114,10,0.4); }
+  50%    { box-shadow:0 0 0 8px rgba(160,114,10,0); }
+}
+
+/* PROGRESS STEPS */
+.steps { margin-bottom:16px; }
+.step {
+  display:flex; align-items:center; gap:12px; padding:10px 0;
+  border-bottom:1px solid var(--border); position:relative;
+}
+.step:last-child { border-bottom:none; }
+.step-icon {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0;
+  background:var(--beige-dark); border:2px solid var(--border);
+  transition:all 0.3s;
+}
+.step-icon.done { background:var(--green); border-color:var(--green); }
+.step-icon.active { background:var(--gold-lt); border-color:var(--gold); animation:myPulse 1.5s infinite; }
+.step-text { flex:1; }
+.step-name { font-size:13px; font-weight:700; color:var(--text); }
+.step-name.done { color:var(--green); }
+.step-name.active { color:var(--brown); }
+.step-time { font-size:11px; color:var(--text-dim); }
+.step-check { font-size:14px; }
+
+/* ORDER INFO */
+.order-info {
+  background:var(--beige); border-radius:10px; padding:12px 14px;
+  border:1px solid var(--border); margin-bottom:16px;
+}
+.order-info-title { font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--gold); font-weight:700; margin-bottom:8px; }
+.order-info-line { font-size:13px; color:var(--text-dim); margin-bottom:4px; }
+.order-info-line strong { color:var(--brown); }
+
+/* REFRESH NOTE */
+.refresh-note {
+  text-align:center; font-size:11px; color:var(--text-dim);
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.refresh-note .spin {
+  display:inline-block; animation:spin 2s linear infinite;
+}
+@keyframes spin { to{ transform:rotate(360deg); } }
+
+/* NOT FOUND */
+.not-found {
+  text-align:center; padding:30px 20px;
+  background:var(--card); border-radius:16px; border:1px solid var(--border);
+}
+.not-found .icon { font-size:40px; margin-bottom:10px; }
+
+/* DELIVERED */
+.delivered-box {
+  text-align:center; padding:24px;
+  background:linear-gradient(135deg, #E8F5E9, #F1F8E9);
+  border-radius:16px; border:2px solid rgba(46,125,82,0.3);
+  margin-bottom:16px;
+}
+.delivered-box .big-check { font-size:56px; margin-bottom:8px; }
+.delivered-box h2 { font-family:'Playfair Display',serif; font-size:1.3rem; color:#2E7D52; margin-bottom:6px; }
+.delivered-box p { font-size:13px; color:rgba(46,125,82,0.8); }
+
+/* FOOTER */
+.footer-note {
+  max-width:500px; margin:0 auto; padding:0 20px 40px;
+  text-align:center; font-size:11px; color:var(--text-dim);
+}
+
+/* GOLD STRIP */
+.gold-strip { height:6px; background:repeating-linear-gradient(90deg, var(--brown) 0,var(--brown) 14px, var(--gold-lt) 14px,var(--gold-lt) 28px); }
+</style>
+
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyAnRhV_QMwdQO8es4MXwvOIxLu-1ZybFGs",
+      authDomain: "like-8e61e.firebaseapp.com",
+      projectId: "like-8e61e",
+      storageBucket: "like-8e61e.firebasestorage.app",
+      messagingSenderId: "200487031216",
+      appId: "1:200487031216:web:032e996a75c8a8018cc675"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    window.fbGet = async (key) => { try { const s=await getDoc(doc(db,'appdata',key)); return s.exists()?{value:s.data().value}:null; } catch(e){return null;} };
+    window.fbSet = async (key,val) => { try { await setDoc(doc(db,'appdata',key),{value:val,updatedAt:new Date().toISOString()}); return true; } catch(e){return false;} };
+    window.fbListen = (key,cb) => onSnapshot(doc(db,'appdata',key),(s)=>{ if(s.exists()) cb(s.data().value); });
+    window.firebaseReady=true;
+    document.dispatchEvent(new Event('firebaseReady'));
+    console.log('✅ Firebase connected');
+  </script>
+</head>
+<body>
+
+<div class="gold-strip"></div>
+<div class="top-bar">
+  <div>
+    <div class="sub">Lieferverfolgung</div>
+    <h1>🌺 Like Ammas Food</h1>
+  </div>
+  <div class="live-dot">LIVE</div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-section">
+  <p class="search-title">Bestellung verfolgen</p>
+  <div class="search-box">
+    <input class="search-input" id="nameInput" placeholder="Deine Handynummer eingeben..." type="tel"
+           onkeydown="if(event.key==='Enter') trackOrder()"/>
+    <button class="search-btn" onclick="trackOrder()">🔍 Suchen</button>
+  </div>
+</div>
+
+<!-- TRACKING RESULT -->
+<div class="tracking-card" id="trackingCard">
+  <!-- filled by JS -->
+</div>
+
+<div class="footer-note">
+  Aktualisiert sich automatisch alle 30 Sekunden<br>
+  📱 Bei Fragen: WhatsApp an <strong style="color:var(--brown);">+49 175 454 1849</strong>
+</div>
+
+<script>
+const STORAGE_KEY = 'ammas-orders-v1';
+const MINS_PER_STOP = 10; // minutes per delivery stop
+let allOrders = [];
+let trackedOrder = null;
+let refreshInterval = null;
+
+// ── LOAD ORDERS FROM SHARED STORAGE ──
+async function loadOrders() {
+  try {
+    const r = await window.storage.get(STORAGE_KEY, true);
+    if (r && r.value) allOrders = JSON.parse(r.value);
+  } catch(e) { allOrders = []; }
+}
+
+// ── TRACK ORDER ──
+async function trackOrder() {
+  const name = document.getElementById('nameInput').value.trim().toLowerCase();
+  if (!name) return;
+
+  await loadOrders();
+
+  // Find order by phone number
+  const normalizedInput = name.replace(/[^0-9]/g,'').replace(/^49/,'0').replace(/^0049/,'0');
+  const found = allOrders.find(o => {
+    if(!o.phone) return false;
+    const normalizedPhone = o.phone.replace(/[^0-9]/g,'').replace(/^49/,'0').replace(/^0049/,'0');
+    return normalizedPhone === normalizedInput || normalizedPhone.includes(normalizedInput);
+  });
+
+  const card = document.getElementById('trackingCard');
+  card.classList.add('show');
+
+  if (!found) {
+    card.innerHTML = `
+      <div class="not-found">
+        <div class="icon">🔍</div>
+        <div style="font-size:14px;font-weight:700;color:var(--brown);margin-bottom:6px;">Keine Bestellung gefunden</div>
+        <div style="font-size:12px;color:var(--text-dim);">Handynummer nicht gefunden.<br>Bitte prüfe deine Nummer oder kontaktiere uns per WhatsApp.</div>
+      </div>`;
+    return;
+  }
+
+  trackedOrder = found;
+  renderTracking();
+
+  // Live sync via Firebase or fallback to 30s interval
+  if (refreshInterval) clearInterval(refreshInterval);
+  if(window.fbListen) {
+    window.fbListen(STORAGE_KEY, (value) => {
+      if(value) {
+        allOrders = JSON.parse(value);
+        const updated = allOrders.find(o => o.id === trackedOrder.id);
+        if (updated) trackedOrder = updated;
+        renderTracking();
+      }
+    });
+  } else {
+    refreshInterval = setInterval(async () => {
+      await loadOrders();
+      const updated = allOrders.find(o => o.id === trackedOrder.id);
+      if (updated) trackedOrder = updated;
+      renderTracking();
+    }, 30000);
+  }
+}
+
+function renderTracking() {
+  const o = trackedOrder;
+  const card = document.getElementById('trackingCard');
+
+  // Time check - show info before 17:00 but still show order status
+  const now = new Date();
+  const hour = now.getHours();
+  if (hour < 17) {
+    // Show order confirmed but delivery not started yet
+    const card = document.getElementById('trackingCard');
+    card.classList.add('show');
+    card.innerHTML = `
+      <div style="background:var(--card);border-radius:16px;border:1px solid var(--border);padding:28px 20px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:10px;">🍳</div>
+        <div style="font-size:15px;font-weight:700;color:var(--brown);margin-bottom:8px;">Bestellung bestätigt!</div>
+        <div style="font-size:13px;color:var(--text-dim);line-height:1.6;">
+          Wir kochen frisch für dich.<br>
+          Das Live-Tracking startet um <strong style="color:var(--brown);">17:00 Uhr</strong>.
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (o.status === 'geliefert') {
+    card.innerHTML = `
+      <div class="delivered-box">
+        <div class="big-check">✅</div>
+        <h2>Geliefert! Guten Appetit!</h2>
+        <p>Deine Bestellung wurde erfolgreich geliefert.<br>Danke, dass du bei Like Ammas Food bestellt hast! 🌺</p>
+      </div>
+      <div class="order-info">
+        <div class="order-info-title">Deine Bestellung</div>
+        ${(o.dishes||[]).map(d=>`<div class="order-info-line"><strong>${d.day}</strong>: ${d.portions}× ${d.dish}</div>`).join('')}
+        ${o.price ? `<div class="order-info-line"><strong>Betrag</strong>: ${o.price}</div>` : ''}
+      </div>`;
+    return;
+  }
+
+  // Calculate queue position
+  // Get all orders for same day that are not yet delivered, sorted by order time
+  const myDay = (o.dishes && o.dishes[0]) ? o.dishes[0].day : null;
+  const activeOrders = allOrders.filter(x =>
+    x.status !== 'geliefert' &&
+    x.dishes && x.dishes[0] && x.dishes[0].day === myDay
+  );
+
+  // Sort by id (order time proxy)
+  activeOrders.sort((a, b) => a.id - b.id);
+
+  const myIndex = activeOrders.findIndex(x => x.id === o.id);
+  const beforeMe = myIndex; // how many before me
+  const totalActive = activeOrders.length;
+  const afterMe = totalActive - myIndex - 1;
+
+  const estMins = beforeMe * MINS_PER_STOP;
+  const estTime = getEstimatedTime(myIndex, o.time);
+
+  // Status config – simplified for customer view
+  const statusConfig = {
+    unterwegs: { emoji:'🚴', title:'Unterwegs zu dir!',  subtitle:'Der Fahrer ist auf dem Weg' },
+    gleich:    { emoji:'🔔', title:'Gleich bei dir!',     subtitle:'Noch wenige Minuten – bitte bereit halten' },
+    geliefert: { emoji:'✅', title:'Geliefert!',          subtitle:'Guten Appetit! 🌺' },
+  };
+  const effectiveStatusForHeader = (o.status === 'geliefert') ? 'geliefert' : (beforeMe === 0 ? 'gleich' : 'unterwegs');
+  const sc = statusConfig[effectiveStatusForHeader];
+
+  // Steps – only 3 relevant ones shown to customer
+  const steps = [
+    { key:'unterwegs',  icon:'🚴', label:'Unterwegs zu dir' },
+    { key:'gleich',     icon:'🔔', label:'Gleich bei dir!' },
+    { key:'geliefert',  icon:'✅', label:'Geliefert' },
+  ];
+  // Map internal status to visible steps
+  const statusToStep = { neu:'unterwegs', bereit:'unterwegs', unterwegs:'unterwegs', geliefert:'geliefert' };
+  const visibleStatus = statusToStep[o.status] || 'unterwegs';
+  const statusOrder = ['unterwegs','gleich','geliefert'];
+  // If beforeMe === 0 and unterwegs → show "gleich"
+  const effectiveStatus = (visibleStatus === 'unterwegs' && beforeMe === 0) ? 'gleich' : visibleStatus;
+  const currentIdx = statusOrder.indexOf(effectiveStatus);
+
+  const stepsHTML = steps.map((s, i) => {
+    const isDone   = i < currentIdx;
+    const isActive = i === currentIdx;
+    return `
+    <div class="step">
+      <div class="step-icon ${isDone?'done':''} ${isActive?'active':''}">${s.icon}</div>
+      <div class="step-text">
+        <div class="step-name ${isDone?'done':''} ${isActive?'active':''}">${s.label}</div>
+      </div>
+      ${isDone ? '<span class="step-check">✓</span>' : ''}
+      ${isActive ? '<span style="font-size:11px;color:var(--gold);font-weight:700;">JETZT</span>' : ''}
+    </div>`;
+  }).join('');
+
+  // Queue dots – only show customers BEFORE me, not after
+  let dotsHTML = '';
+  for (let i = 0; i < Math.min(beforeMe, 8); i++) {
+    dotsHTML += `<div class="queue-dot before">👤</div>`;
+  }
+  dotsHTML += `<div class="queue-dot me">⭐</div>`;
+  // NO dots after me
+
+  card.innerHTML = `
+    <div class="status-header">
+      <span class="status-emoji">${sc.emoji}</span>
+      <div class="status-title">${sc.title}</div>
+      <div class="status-subtitle">${sc.subtitle}</div>
+    </div>
+    <div class="counter-box">
+
+      <!-- BIG COUNTER -->
+      <div class="big-counter">
+        <span class="counter-num" id="counterNum">${beforeMe}</span>
+        <div class="counter-label">
+          ${beforeMe === 0
+            ? '🎉 Du bist als Nächstes dran!'
+            : beforeMe === 1
+              ? 'Kunde wird noch vor dir beliefert'
+              : `Kunden werden noch vor dir beliefert`}
+        </div>
+      </div>
+
+      <!-- TIME ESTIMATE -->
+      <div class="time-estimate">
+        <div class="time-icon">⏱️</div>
+        <div class="time-text">
+          <div class="time-label">Geschätzte Lieferzeit</div>
+          <div class="time-value">${estTime}</div>
+          <div class="time-sub">${beforeMe === 0 ? 'Du bist als Nächstes!' : `noch ca. ${beforeMe * MINS_PER_STOP}–${beforeMe * MINS_PER_STOP + 10} Minuten`}</div>
+        </div>
+      </div>
+
+      <!-- QUEUE VISUALIZATION -->
+      ${beforeMe > 0 ? `
+      <div class="queue-viz">
+        <div class="queue-title">👤 = Noch vor dir &nbsp;|&nbsp; ⭐ = Du</div>
+        <div class="queue-row">${dotsHTML}</div>
+      </div>` : `
+      <div style="text-align:center;padding:10px 0;font-size:13px;color:var(--green);font-weight:700;">
+        🎉 Du bist als Nächstes dran!
+      </div>`}
+
+      <!-- ORDER INFO -->
+      <div class="order-info">
+        <div class="order-info-title">Deine Bestellung</div>
+        <div class="order-info-line"><strong>Name</strong>: ${o.name}</div>
+        ${(o.dishes||[]).map(d=>`<div class="order-info-line"><strong>Gericht</strong>: ${d.portions}× ${d.dish}</div>`).join('')}
+        ${o.price ? `<div class="order-info-line"><strong>Betrag (bar)</strong>: ${o.price}</div>` : ''}
+        ${o.address ? `<div class="order-info-line"><strong>Adresse</strong>: ${o.address}</div>` : ''}
+      </div>
+
+      <!-- STEPS -->
+      <div class="steps">${stepsHTML}</div>
+
+      <!-- REFRESH NOTE -->
+      <div class="refresh-note">
+        <span class="spin">🔄</span> Aktualisiert sich automatisch
+      </div>
+
+    </div>`;
+}
+
+function getEstimatedTime(position, orderTime) {
+  // Base: delivery starts at 17:00
+  // Each stop = 10 mins
+  // If delivery already started (status unterwegs/bereit), calc from now
+  const now = new Date();
+
+  // Parse order time to get order sequence
+  let baseHour = 17, baseMins = 0;
+
+  // If we know the order time, use it to figure out slot
+  if (orderTime) {
+    const parts = orderTime.split(':');
+    const oH = parseInt(parts[0]);
+    const oM = parseInt(parts[1]);
+    // Orders after 17:00 get their slot based on position
+    // Estimate: first order delivered at 17:10, each next +10 mins
+  }
+
+  // Simple calculation: delivery start 17:00 + position * 10 mins
+  const deliveryStart = new Date();
+  deliveryStart.setHours(17, 0, 0, 0);
+  deliveryStart.setMinutes(deliveryStart.getMinutes() + (position * MINS_PER_STOP) + MINS_PER_STOP);
+
+  // If delivery start is in the past, add from now
+  const base = deliveryStart > now ? deliveryStart : new Date(now.getTime() + position * MINS_PER_STOP * 60000 + MINS_PER_STOP * 60000);
+
+  const h = base.getHours().toString().padStart(2, '0');
+  const m = base.getMinutes().toString().padStart(2, '0');
+  return `${h}:${m} Uhr`;
+}
+
+// ── DEMO MODE: inject sample orders so tracking page works standalone ──
+async function loadOrders() {
+  try {
+    // Try Firebase first
+    const r = window.fbGet ? await window.fbGet(STORAGE_KEY) : await window.storage.get(STORAGE_KEY, true).catch(()=>null);
+    if (r && r.value) {
+      const stored = JSON.parse(r.value);
+      if (stored.length > 0) { allOrders = stored; return; }
+    }
+  } catch(e) {}
+  // No fallback data - use real Firebase orders only
+  allOrders = [];
+}
+
+// Auto-load if name in URL
+const params = new URLSearchParams(window.location.search);
+if (params.get('phone')) {
+  document.getElementById('nameInput').value = params.get('phone');
+  trackOrder();
+} else {
+  // No auto-demo - wait for user to enter name
+}
+</script>
+</body>
+</html>

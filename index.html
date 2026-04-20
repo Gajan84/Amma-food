@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Like Ammas Food – Bestellung</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyAnRhV_QMwdQO8es4MXwvOIxLu-1ZybFGs",
+    authDomain: "like-8e61e.firebaseapp.com",
+    projectId: "like-8e61e",
+    storageBucket: "like-8e61e.firebasestorage.app",
+    messagingSenderId: "200487031216",
+    appId: "1:200487031216:web:032e996a75c8a8018cc675"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  window.fbGet = async(k)=>{ try{ const s=await getDoc(doc(db,'appdata',k)); return s.exists()?{value:s.data().value}:null; }catch(e){return null;} };
+  window.fbSet = async(k,v)=>{ try{ await setDoc(doc(db,'appdata',k),{value:v,updatedAt:new Date().toISOString()}); return true; }catch(e){return false;} };
+  window.firebaseReady=true;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+
+<style>
+:root {
+  --ink:       #1C1008;
+  --ink-soft:  rgba(28,16,8,0.55);
+  --ink-faint: rgba(28,16,8,0.1);
+  --gold:      #B07D2E;
+  --gold-lt:   #D4A847;
+  --gold-pale: #F0D890;
+  --spice:     #C84B1F;
+  --teal:      #1A6B5A;
+  --cream:     #FDFAF4;
+  --cream2:    #F5EFE2;
+  --cream3:    #EDE4D0;
+  --white:     #FFFFFF;
+  --radius:    16px;
+  --shadow:    0 2px 20px rgba(28,16,8,0.08);
+  --shadow-lg: 0 8px 40px rgba(28,16,8,0.12);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── SUBTLE TEXTILE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23B07D2E' stroke-width='0.8'%3E%3Ccircle cx='30' cy='30' r='25'/%3E%3Ccircle cx='30' cy='30' r='15'/%3E%3Ccircle cx='30' cy='30' r='5'/%3E%3Cellipse cx='30' cy='30' rx='5' ry='10' transform='rotate(0 30 30)'/%3E%3Cellipse cx='30' cy='30' rx='5' ry='10' transform='rotate(45 30 30)'/%3E%3Cellipse cx='30' cy='30' rx='5' ry='10' transform='rotate(90 30 30)'/%3E%3Cellipse cx='30' cy='30' rx='5' ry='10' transform='rotate(135 30 30)'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
+body > * { position: relative; z-index: 1; }
+
+/* ── LANGUAGE BAR ── */
+.lang-bar {
+  background: var(--ink);
+  padding: 8px 20px;
+  display: flex; justify-content: flex-end; align-items: center; gap: 4px;
+}
+.lang-btn {
+  padding: 4px 14px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  background: transparent; color: rgba(255,255,255,0.5);
+  transition: all 0.2s; letter-spacing: 0.3px;
+}
+.lang-btn.active { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 600; }
+.lang-btn:hover:not(.active) { color: white; border-color: rgba(255,255,255,0.4); }
+
+/* ── HERO HEADER ── */
+.hero {
+  position: relative; overflow: hidden;
+  background: var(--ink);
+}
+.hero-img {
+  width: 100%; height: auto; display: block;
+  opacity: 0.75;
+}
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    rgba(28,16,8,0.2) 0%,
+    rgba(28,16,8,0.5) 60%,
+    rgba(28,16,8,0.92) 100%);
+}
+.hero-content {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 24px 24px 28px;
+  text-align: center;
+}
+.hero-logo {
+  width: min(160px, 42vw); height: auto;
+  display: block; margin: 0 auto 10px;
+  filter: brightness(0) invert(1);
+  opacity: 0.95;
+}
+.hero-tag {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 3px; text-transform: uppercase;
+  padding: 4px 14px; border-radius: 20px;
+  margin-bottom: 8px;
+}
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 600; color: white;
+  line-height: 1.2; margin-bottom: 6px;
+}
+.hero-sub {
+  font-size: 13px; color: rgba(255,255,255,0.65);
+  letter-spacing: 0.5px;
+}
+
+/* ── COUNTDOWN BANNER ── */
+.countdown {
+  background: var(--gold);
+  padding: 10px 20px;
+  text-align: center;
+  font-size: 13px; font-weight: 500;
+  color: var(--ink);
+}
+.countdown strong { font-weight: 700; }
+
+/* ── DELIVERY INFO STRIP ── */
+.info-strip {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--cream3);
+  background: var(--white);
+  overflow-x: auto;
+}
+.info-chip {
+  flex: 1; min-width: 80px;
+  padding: 14px 10px;
+  text-align: center;
+  border-right: 1px solid var(--cream3);
+}
+.info-chip:last-child { border-right: none; }
+.info-chip .ic-icon { font-size: 18px; margin-bottom: 4px; display: block; }
+.info-chip .ic-val  { font-size: 11px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.info-chip .ic-lbl  { font-size: 10px; color: var(--ink-soft); margin-top: 1px; }
+
+/* ── SECTION HEADERS ── */
+.section {
+  padding: 28px 20px 0;
+  max-width: 900px; margin: 0 auto;
+}
+.section-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 16px;
+}
+.section-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(to right, var(--cream3), transparent);
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--ink); letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.section-ornament { color: var(--gold); font-size: 14px; }
+
+/* ── PRICING TIERS ── */
+.pricing-grid {
+  display: grid; grid-template-columns: repeat(4,1fr); gap: 8px;
+  max-width: 900px; margin: 0 auto; padding: 0 20px 28px;
+}
+.price-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 14px 10px;
+  text-align: center;
+  border: 1.5px solid var(--cream3);
+  transition: all 0.2s;
+  cursor: default;
+  position: relative; overflow: hidden;
+}
+.price-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--cream3);
+  transition: background 0.2s;
+}
+.price-card.active {
+  border-color: var(--gold);
+  box-shadow: 0 4px 20px rgba(176,125,46,0.15);
+  transform: translateY(-2px);
+}
+.price-card.active::before { background: var(--gold); }
+.price-card .pc-days { font-size: 10px; font-weight: 600; color: var(--ink-soft); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.price-card .pc-price { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 700; color: var(--ink); line-height: 1; margin-bottom: 3px; }
+.price-card.active .pc-price { color: var(--gold); }
+.price-card .pc-del { font-size: 10px; color: var(--ink-soft); }
+
+/* ── INSTRUCTION ── */
+.instruction {
+  text-align: center; font-size: 13px;
+  color: var(--ink-soft); margin: 0 auto 24px;
+  padding: 0 20px; line-height: 1.6; max-width: 500px;
+}
+.instruction strong { color: var(--ink); font-weight: 600; }
+
+/* ── MENU CARDS ── */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
+  gap: 16px; max-width: 900px;
+  margin: 0 auto; padding: 0 20px 32px;
+}
+
+.menu-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1.5px solid var(--cream3);
+  box-shadow: var(--shadow);
+  transition: all 0.3s cubic-bezier(.2,.8,.2,1);
+  position: relative;
+}
+.menu-card.active {
+  border-color: var(--gold);
+  box-shadow: var(--shadow-lg), 0 0 0 3px rgba(176,125,46,0.1);
+  transform: translateY(-4px);
+}
+
+/* Card image */
+.card-img { width:100%; height:180px; overflow:hidden; position:relative; }
+.card-img img {
+  width:100%; height:100%; object-fit:cover;
+  transition: transform 0.5s cubic-bezier(.2,.8,.2,1);
+}
+.menu-card.active .card-img img { transform: scale(1.05); }
+
+/* Day tag overlay on image */
+.day-tag {
+  position: absolute; top: 12px; left: 12px;
+  background: var(--ink); color: white;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px;
+}
+.menu-card.active .day-tag { background: var(--gold); color: var(--ink); }
+
+/* Stars overlay on image */
+.stars-overlay {
+  position: absolute; bottom: 10px; right: 10px;
+  background: rgba(28,16,8,0.7);
+  border-radius: 20px; padding: 3px 10px;
+  display: flex; align-items: center; gap: 4px;
+}
+.stars-overlay .stars { display:flex; gap:1px; }
+.stars-overlay .star { font-size:11px; color:rgba(255,255,255,0.3); cursor:pointer; transition:all 0.1s; }
+.stars-overlay .star.filled { color: var(--gold-pale); }
+.stars-overlay .avg { font-size:11px; color:white; font-weight:600; }
+.stars-overlay .cnt { font-size:10px; color:rgba(255,255,255,0.5); }
+
+/* Card body */
+.card-body { padding: 16px; }
+.dish-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--ink); margin-bottom: 4px; line-height: 1.2;
+}
+.dish-desc {
+  font-size: 12px; color: var(--ink-soft);
+  line-height: 1.6; margin-bottom: 14px;
+}
+
+/* Divider */
+.card-div { height:1px; background: var(--cream3); margin-bottom:14px; }
+
+/* Portion row */
+.portion-row { display:flex; align-items:center; gap:10px; }
+.portion-label { font-size:11px; font-weight:600; color:var(--ink-soft); flex:1; letter-spacing:0.5px; text-transform:uppercase; }
+.qty-wrap { display:flex; align-items:center; background:var(--cream2); border-radius:10px; overflow:hidden; }
+.qty-btn {
+  width:34px; height:34px; border:none; background:transparent;
+  cursor:pointer; font-size:18px; font-weight:500; color:var(--gold);
+  transition:all 0.15s; display:flex; align-items:center; justify-content:center;
+}
+.qty-btn:hover { background: var(--cream3); }
+.qty-num {
+  width:36px; text-align:center; font-size:15px; font-weight:700;
+  color:var(--ink); background:transparent; border:none; line-height:34px;
+}
+.day-total { font-size:12px; font-weight:600; color:var(--gold); text-align:right; margin-top:8px; min-height:16px; }
+
+/* ── FORM SECTION ── */
+.form-section {
+  max-width: 560px; margin: 0 auto; padding: 0 20px 28px;
+}
+.form-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem; font-weight: 700; font-style: italic;
+  color: var(--ink); margin-bottom: 18px; text-align: center;
+}
+
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block; font-size: 11px; font-weight: 600;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 6px;
+}
+.form-group input {
+  width: 100%; padding: 13px 16px; border-radius: 12px;
+  border: 1.5px solid var(--cream3);
+  background: var(--white); color: var(--ink);
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: all 0.2s;
+}
+.form-group input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(176,125,46,0.1); }
+.form-group input.valid { border-color: #4CAF50; }
+.form-group input::placeholder { color: rgba(28,16,8,0.25); }
+.form-row { display:flex; gap:12px; }
+.form-group-plz { flex:0 0 120px; }
+.form-group-city { flex:1; }
+
+/* ── PAYMENT NOTICE ── */
+.payment-notice {
+  max-width: 560px; margin: 0 auto 20px;
+  background: var(--cream2);
+  border-radius: var(--radius);
+  border-left: 4px solid var(--gold);
+  padding: 14px 18px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.payment-notice .pn-icon { font-size: 22px; flex-shrink:0; margin-top:1px; }
+.pn-title { font-size: 12px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.pn-text { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
+
+/* ── ORDER SUMMARY ── */
+.summary-box {
+  max-width: 560px; margin: 0 auto 20px;
+  background: var(--white); border-radius: var(--radius);
+  border: 1.5px solid var(--cream3);
+  padding: 18px; display: none;
+  box-shadow: var(--shadow);
+}
+.summary-box.visible { display: block; }
+.summary-title { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 12px; }
+.summary-line { font-size: 13px; margin-bottom: 6px; color: var(--ink-soft); display:flex; justify-content:space-between; }
+.summary-line span { color: var(--ink); font-weight: 600; }
+.summary-div { border:none; border-top:1px solid var(--cream3); margin:10px 0; }
+.summary-total { font-size: 16px; font-weight: 700; color: var(--ink); display:flex; justify-content:space-between; }
+.summary-total .amt { color: var(--gold); }
+.summary-note { font-size: 11px; color: var(--ink-soft); margin-top: 5px; }
+
+/* ── STATUS MSG ── */
+.status-msg {
+  text-align: center; font-size: 13px; font-weight: 500;
+  color: var(--ink-soft); margin: 0 auto 16px; padding: 0 20px;
+  min-height: 18px;
+}
+.status-msg.ready { color: var(--teal); font-weight: 600; }
+.status-msg.warn { color: var(--spice); }
+
+/* ── ORDER BUTTON ── */
+.order-btn-wrap { text-align: center; padding: 0 20px 10px; }
+.order-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: #25D366; color: white; border: none;
+  padding: 16px 40px; border-radius: 50px;
+  font-size: 15px; font-weight: 600; font-family: 'DM Sans', sans-serif;
+  cursor: pointer; letter-spacing: 0.3px; transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.35);
+}
+.order-btn:hover { transform: scale(1.03); box-shadow: 0 6px 28px rgba(37,211,102,0.45); }
+.order-btn:disabled {
+  background: var(--cream3); color: var(--ink-soft);
+  box-shadow: none; cursor: not-allowed; transform: none;
+}
+.wa-icon { width: 20px; height: 20px; }
+
+/* ── TRACKING LINK ── */
+.tracking-link-wrap {
+  text-align: center; padding: 16px 20px 8px;
+}
+.tracking-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--white); border: 1.5px solid var(--cream3);
+  border-radius: 50px; padding: 10px 22px;
+  font-size: 13px; font-weight: 500; color: var(--ink);
+  text-decoration: none; transition: all 0.2s;
+  box-shadow: var(--shadow);
+}
+.tracking-link:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── FOOTER ── */
+.footer {
+  text-align: center; padding: 20px 20px 32px;
+  font-size: 11px; color: var(--ink-soft);
+  border-top: 1px solid var(--cream3);
+  margin-top: 16px;
+}
+
+/* ── CONFIRMATION POPUP ── */
+@keyframes popIn { from{opacity:0;transform:translate(-50%,-50%) scale(0.9)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
+.confirm-popup {
+  position: fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+  background: white; border-radius: 24px;
+  padding: 32px 28px; text-align: center;
+  z-index: 9999; box-shadow: 0 20px 60px rgba(28,16,8,0.25);
+  max-width: 320px; width: 90%;
+  animation: popIn 0.3s cubic-bezier(.2,.8,.2,1);
+}
+.confirm-backdrop {
+  position: fixed; inset:0; background:rgba(28,16,8,0.5);
+  z-index: 9998; backdrop-filter: blur(4px);
+}
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.menu-card, .price-card { animation: fadeUp 0.4s ease both; }
+.menu-card:nth-child(1){ animation-delay:0.05s; }
+.menu-card:nth-child(2){ animation-delay:0.1s; }
+.menu-card:nth-child(3){ animation-delay:0.15s; }
+.menu-card:nth-child(4){ animation-delay:0.2s; }
+
+@media(max-width:480px){
+  .menu-grid{grid-template-columns:1fr;}
+  .pricing-grid{grid-template-columns:repeat(2,1fr);}
+  .form-row{flex-direction:column;}
+  .form-group-plz{flex:auto;}
+  .info-strip{justify-content:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- Lang bar -->
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('de')" id="btn-de">🇩🇪 DE</button>
+  <button class="lang-btn" onclick="setLang('en')" id="btn-en">🇬🇧 EN</button>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <img class="hero-img" src="https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1200&q=80" alt="Like Ammas Food"/>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <img class="hero-logo" src="https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=1&q=1" alt="Like Ammas Food" onerror="this.style.display='none'"/>
+    <div class="hero-tag" id="t-tag">Südindische Küche · Frankfurt</div>
+    <h1 class="hero-title" id="t-title">Frisch gekocht.<br>Täglich geliefert.</h1>
+    <p class="hero-sub" id="t-sub">Bestelle dein Essen direkt per WhatsApp</p>
+  </div>
+</div>
+
+<!-- Countdown -->
+<div class="countdown" id="countdownBar">⏳ Lädt...</div>
+
+<!-- Info strip -->
+<div class="info-strip">
+  <div class="info-chip"><span class="ic-icon">🕔</span><div class="ic-val" id="t-time">17–20 Uhr</div><div class="ic-lbl" id="t-time-l">Lieferzeit</div></div>
+  <div class="info-chip"><span class="ic-icon">🗓</span><div class="ic-val" id="t-days">Mo – Do</div><div class="ic-lbl" id="t-days-l">Liefertage</div></div>
+  <div class="info-chip"><span class="ic-icon">📍</span><div class="ic-val" id="t-area">Frankfurt</div><div class="ic-lbl" id="t-area-l">Gebiet</div></div>
+  <div class="info-chip"><span class="ic-icon">💵</span><div class="ic-val" id="t-pay">Bar</div><div class="ic-lbl" id="t-pay-l">Zahlung</div></div>
+</div>
+
+<!-- Pricing -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-ornament">✦</span>
+    <h2 class="section-title" id="t-pricing">Wochenpreise pro Portion</h2>
+    <div class="section-line"></div>
+  </div>
+</div>
+<div class="pricing-grid">
+  <div class="price-card" id="tier-4"><div class="pc-days" id="t-4d">4 Tage</div><div class="pc-price">9,00€</div><div class="pc-del" id="t-del">+ 2,50€ Lieferung</div></div>
+  <div class="price-card" id="tier-3"><div class="pc-days" id="t-3d">3 Tage</div><div class="pc-price">10,00€</div><div class="pc-del">+ 2,50€ <span id="t-del2">Lieferung</span></div></div>
+  <div class="price-card" id="tier-2"><div class="pc-days" id="t-2d">2 Tage</div><div class="pc-price">11,00€</div><div class="pc-del">+ 2,50€ <span id="t-del3">Lieferung</span></div></div>
+  <div class="price-card" id="tier-1"><div class="pc-days" id="t-1d">1 Tag</div><div class="pc-price">12,00€</div><div class="pc-del">+ 2,50€ <span id="t-del4">Lieferung</span></div></div>
+</div>
+
+<!-- Instruction -->
+<p class="instruction" id="t-instr">Wähle <strong>Portionen pro Tag</strong> mit − und + &nbsp;·&nbsp; Mehrere Tage möglich</p>
+
+<!-- Menu -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-ornament">🌺</span>
+    <h2 class="section-title" id="t-menu">Diese Woche</h2>
+    <div class="section-line"></div>
+  </div>
+</div>
+
+<div class="menu-grid">
+
+  <div class="menu-card" id="card-Mo">
+    <div class="card-img">
+      <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80" alt="Biryani"/>
+      <div class="day-tag" id="tag-Mo">Montag</div>
+      <div class="stars-overlay">
+        <div class="stars" id="stars-Mo" onclick="rateDish(event,'Mo')">
+          <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span>
+          <span class="star" data-v="3">★</span><span class="star" data-v="4">★</span>
+          <span class="star" data-v="5">★</span>
+        </div>
+        <span class="avg" id="avg-Mo"></span>
+        <span class="cnt" id="cnt-Mo"></span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="dish-name">Biryani</div>
+      <div class="dish-desc" id="desc-Mo">Duftender Basmati-Reis mit aromatischen Gewürzen, frischen Kräutern & knusprigen Zwiebeln</div>
+      <div class="card-div"></div>
+      <div class="portion-row">
+        <span class="portion-label" id="t-port">Portionen</span>
+        <div class="qty-wrap">
+          <button class="qty-btn" onclick="changeQty('Mo',-1)">−</button>
+          <div class="qty-num" id="qty-Mo">0</div>
+          <button class="qty-btn" onclick="changeQty('Mo',1)">+</button>
+        </div>
+      </div>
+      <div class="day-total" id="total-Mo"></div>
+    </div>
+  </div>
+
+  <div class="menu-card" id="card-Di">
+    <div class="card-img">
+      <img src="https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80" alt="Idli"/>
+      <div class="day-tag" id="tag-Di">Dienstag</div>
+      <div class="stars-overlay">
+        <div class="stars" id="stars-Di" onclick="rateDish(event,'Di')">
+          <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span>
+          <span class="star" data-v="3">★</span><span class="star" data-v="4">★</span>
+          <span class="star" data-v="5">★</span>
+        </div>
+        <span class="avg" id="avg-Di"></span>
+        <span class="cnt" id="cnt-Di"></span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="dish-name">Idli mit Sambar</div>
+      <div class="dish-desc" id="desc-Di">Zarte gedämpfte Reiskuchen mit würziger Linsensuppe & frischem Kokosnuss-Chutney</div>
+      <div class="card-div"></div>
+      <div class="portion-row">
+        <span class="portion-label">Portionen</span>
+        <div class="qty-wrap">
+          <button class="qty-btn" onclick="changeQty('Di',-1)">−</button>
+          <div class="qty-num" id="qty-Di">0</div>
+          <button class="qty-btn" onclick="changeQty('Di',1)">+</button>
+        </div>
+      </div>
+      <div class="day-total" id="total-Di"></div>
+    </div>
+  </div>
+
+  <div class="menu-card" id="card-Mi">
+    <div class="card-img">
+      <img src="https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400&q=80" alt="Reis"/>
+      <div class="day-tag" id="tag-Mi">Mittwoch</div>
+      <div class="stars-overlay">
+        <div class="stars" id="stars-Mi" onclick="rateDish(event,'Mi')">
+          <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span>
+          <span class="star" data-v="3">★</span><span class="star" data-v="4">★</span>
+          <span class="star" data-v="5">★</span>
+        </div>
+        <span class="avg" id="avg-Mi"></span>
+        <span class="cnt" id="cnt-Mi"></span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="dish-name">Reis & Tomaten-Chutney</div>
+      <div class="dish-desc" id="desc-Mi">Gedämpfter Basmati-Reis mit frischem Tomaten-Chutney, Sambar & Gewürzöl</div>
+      <div class="card-div"></div>
+      <div class="portion-row">
+        <span class="portion-label">Portionen</span>
+        <div class="qty-wrap">
+          <button class="qty-btn" onclick="changeQty('Mi',-1)">−</button>
+          <div class="qty-num" id="qty-Mi">0</div>
+          <button class="qty-btn" onclick="changeQty('Mi',1)">+</button>
+        </div>
+      </div>
+      <div class="day-total" id="total-Mi"></div>
+    </div>
+  </div>
+
+  <div class="menu-card" id="card-Do">
+    <div class="card-img">
+      <img src="https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400&q=80" alt="Chapati"/>
+      <div class="day-tag" id="tag-Do">Donnerstag</div>
+      <div class="stars-overlay">
+        <div class="stars" id="stars-Do" onclick="rateDish(event,'Do')">
+          <span class="star" data-v="1">★</span><span class="star" data-v="2">★</span>
+          <span class="star" data-v="3">★</span><span class="star" data-v="4">★</span>
+          <span class="star" data-v="5">★</span>
+        </div>
+        <span class="avg" id="avg-Do"></span>
+        <span class="cnt" id="cnt-Do"></span>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="dish-name">Chapati</div>
+      <div class="dish-desc" id="desc-Do">Frisch gebackenes Vollkorn-Fladenbrot mit hausgemachtem Chutney & aromatischem Curry</div>
+      <div class="card-div"></div>
+      <div class="portion-row">
+        <span class="portion-label">Portionen</span>
+        <div class="qty-wrap">
+          <button class="qty-btn" onclick="changeQty('Do',-1)">−</button>
+          <div class="qty-num" id="qty-Do">0</div>
+          <button class="qty-btn" onclick="changeQty('Do',1)">+</button>
+        </div>
+      </div>
+      <div class="day-total" id="total-Do"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Form -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-ornament">✦</span>
+    <h2 class="section-title" id="t-delivery">Lieferangaben</h2>
+    <div class="section-line"></div>
+  </div>
+</div>
+
+<div class="form-section">
+  <div class="form-group">
+    <label id="l-name">👤 Name</label>
+    <input type="text" id="customerName" placeholder="Vor- und Nachname" oninput="updateAll()"/>
+  </div>
+  <div class="form-group">
+    <label id="l-street">🏠 Straße & Hausnummer</label>
+    <input type="text" id="customerStreet" placeholder="z.B. Musterstraße 12" oninput="updateAll()"/>
+  </div>
+  <div class="form-row">
+    <div class="form-group form-group-plz">
+      <label id="l-plz">📮 PLZ</label>
+      <input type="text" id="customerPLZ" placeholder="12345" maxlength="5" oninput="updateAll()"/>
+    </div>
+    <div class="form-group form-group-city">
+      <label id="l-city">🏙 Stadt</label>
+      <input type="text" id="customerCity" placeholder="z.B. Frankfurt" oninput="updateAll()"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label id="l-phone">📱 WhatsApp-Nummer</label>
+    <input type="tel" id="customerPhone" placeholder="z.B. +49 170 1234567" oninput="updateAll()"/>
+  </div>
+</div>
+
+<!-- Payment notice -->
+<div class="payment-notice" style="max-width:560px;margin:0 auto 20px;padding:0 20px;" >
+  <div style="background:var(--cream2);border-radius:var(--radius);border-left:4px solid var(--gold);padding:14px 18px;display:flex;gap:14px;align-items:flex-start;width:100%;">
+    <div style="font-size:22px;flex-shrink:0;">💵</div>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;" id="t-pay-title">Zahlung bei Lieferung – Nur Barzahlung</div>
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;" id="t-pay-text">Bitte halte den Betrag bereit. Es gibt keine Kartenzahlung. Der Fahrer gibt Wechselgeld zurück.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="summary-box" id="summaryBox" style="max-width:560px;padding:0 20px;margin:0 auto 20px;">
+  <div style="background:var(--white);border-radius:var(--radius);border:1.5px solid var(--cream3);padding:18px;box-shadow:var(--shadow);">
+    <div class="summary-title" id="t-summary">Bestellübersicht</div>
+    <div id="summaryLines"></div>
+    <hr class="summary-div"/>
+    <div class="summary-total"><span id="t-total">Gesamt</span><span class="amt" id="summaryTotal"></span></div>
+    <div class="summary-note" id="summaryNote"></div>
+  </div>
+</div>
+
+<!-- Status + Button -->
+<div class="status-msg" id="statusMsg">Bitte Portionen auswählen</div>
+<div class="order-btn-wrap">
+  <button class="order-btn" id="orderBtn" disabled onclick="sendOrder()">
+    <svg class="wa-icon" viewBox="0 0 24 24" fill="white">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+    <span id="t-btn">Jetzt per WhatsApp bestellen</span>
+  </button>
+</div>
+
+<!-- Tracking link -->
+<div class="tracking-link-wrap">
+  <a href="tracking.html" class="tracking-link">
+    <span>🚴</span>
+    <span id="t-track">Bestellung verfolgen</span>
+  </a>
+  <p style="font-size:11px;color:var(--ink-soft);margin-top:8px;" id="t-track-sub">Bereits bestellt? Lieferung live verfolgen.</p>
+</div>
+
+<div class="footer" id="t-footer">© Like Ammas Food · Südindische Küche · Täglich frisch mit Liebe gekocht 🌺</div>
+
+<script>
+const WHATSAPP_NUMBER = "491754541849";
+const STORAGE_KEY = 'ammas-orders-v1';
+const RATINGS_KEY = 'ammas-ratings-v1';
+const DAYS = {
+  Mo:{name:"Montag",    dish:"Biryani"},
+  Di:{name:"Dienstag",  dish:"Idli mit Sambar"},
+  Mi:{name:"Mittwoch",  dish:"Reis & Tomaten-Chutney & Sambar"},
+  Do:{name:"Donnerstag",dish:"Chapati mit Chutney & Curry"}
+};
+function getPPP(d){if(d>=4)return 9;if(d===3)return 10;if(d===2)return 11;return 12;}
+let qtys={Mo:0,Di:0,Mi:0,Do:0};
+let ratings={};
+let currentLang='de';
+
+// ── LANGUAGE ──
+const TEXTS = {
+  de:{
+    tag:"Südindische Küche · Frankfurt",
+    title:"Frisch gekocht.<br>Täglich geliefert.",
+    sub:"Bestelle dein Essen direkt per WhatsApp",
+    time:"17–20 Uhr", timeL:"Lieferzeit",
+    days:"Mo – Do", daysL:"Liefertage",
+    area:"Frankfurt", areaL:"Gebiet",
+    pay:"Bar", payL:"Zahlung",
+    pricing:"Wochenpreise pro Portion",
+    "4d":"4 Tage","3d":"3 Tage","2d":"2 Tage","1d":"1 Tag",
+    del:"Lieferung",
+    instr:"Wähle <strong>Portionen pro Tag</strong> mit − und + · Mehrere Tage möglich",
+    menu:"Diese Woche",
+    tagMo:"Montag",tagDi:"Dienstag",tagMi:"Mittwoch",tagDo:"Donnerstag",
+    descMo:"Duftender Basmati-Reis mit aromatischen Gewürzen, frischen Kräutern & knusprigen Zwiebeln",
+    descDi:"Zarte gedämpfte Reiskuchen mit würziger Linsensuppe & frischem Kokosnuss-Chutney",
+    descMi:"Gedämpfter Basmati-Reis mit frischem Tomaten-Chutney, Sambar & Gewürzöl",
+    descDo:"Frisch gebackenes Vollkorn-Fladenbrot mit hausgemachtem Chutney & aromatischem Curry",
+    port:"Portionen",
+    delivery:"Lieferangaben",
+    lName:"👤 Name", lStreet:"🏠 Straße & Hausnummer",
+    lPLZ:"📮 PLZ", lCity:"🏙 Stadt", lPhone:"📱 WhatsApp-Nummer",
+    phName:"Vor- und Nachname", phStreet:"z.B. Musterstraße 12",
+    phCity:"z.B. Frankfurt", phPhone:"z.B. +49 170 1234567",
+    payTitle:"Zahlung bei Lieferung – Nur Barzahlung",
+    payText:"Bitte halte den Betrag bereit. Es gibt keine Kartenzahlung. Der Fahrer gibt Wechselgeld zurück.",
+    summary:"Bestellübersicht", total:"Gesamt",
+    btn:"Jetzt per WhatsApp bestellen",
+    track:"Bestellung verfolgen",
+    trackSub:"Bereits bestellt? Lieferung live verfolgen.",
+    footer:"© Like Ammas Food · Südindische Küche · Täglich frisch mit Liebe gekocht 🌺",
+    statusEmpty:"Bitte Portionen auswählen",
+    warnName:"⚠️ Bitte Namen eingeben",
+    warnStreet:"⚠️ Bitte Straße eingeben",
+    warnPLZ:"⚠️ Bitte Postleitzahl eingeben",
+    warnCity:"⚠️ Bitte Stadt eingeben",
+    warnPhone:"⚠️ Bitte WhatsApp-Nummer eingeben",
+    waMsg:"Hallo Like Ammas Food! 🙏\nMeine Bestellung:\n\n",
+    waDays:"Tag", waPortions:"Portion", waPortionsP:"Portionen",
+    waPrice:"Preis/Portion", waDel:"Liefergebühr", waTotal:"Gesamt",
+    waName:"Name", waAddr:"Adresse", waWA:"WhatsApp",
+    waThanks:"Vielen Dank! \uD83C\uDF3A",
+    confirmTitle:"Bestellung eingegangen!",
+    confirmSub:"WhatsApp wird gleich geöffnet.",
+    confirmNr:"Deine Kundennummer",
+    confirmNote:"Bitte merken für Rückfragen",
+    confirmTrack:"🚴 Lieferung verfolgen",
+    confirmClose:"Schließt in 8 Sekunden",
+    ratingToast:"⭐ Danke für deine Bewertung!"
+  },
+  en:{
+    tag:"South Indian Cuisine · Frankfurt",
+    title:"Fresh cooked.<br>Daily delivered.",
+    sub:"Order your food directly via WhatsApp",
+    time:"5–8 PM", timeL:"Delivery time",
+    days:"Mon – Thu", daysL:"Delivery days",
+    area:"Frankfurt", areaL:"Area",
+    pay:"Cash", payL:"Payment",
+    pricing:"Weekly prices per portion",
+    "4d":"4 days","3d":"3 days","2d":"2 days","1d":"1 day",
+    del:"Delivery",
+    instr:"Choose <strong>portions per day</strong> with − and + · Multiple days possible",
+    menu:"This week",
+    tagMo:"Monday",tagDi:"Tuesday",tagMi:"Wednesday",tagDo:"Thursday",
+    descMo:"Fragrant basmati rice with aromatic spices, fresh herbs & crispy onions",
+    descDi:"Soft steamed rice cakes with spicy lentil soup & fresh coconut chutney",
+    descMi:"Steamed basmati rice with fresh tomato chutney, sambar & spiced oil",
+    descDo:"Freshly baked wholemeal flatbread with homemade chutney & aromatic curry",
+    port:"Portions",
+    delivery:"Delivery Details",
+    lName:"👤 Name", lStreet:"🏠 Street & House No.",
+    lPLZ:"📮 Postal Code", lCity:"🏙 City", lPhone:"📱 WhatsApp Number",
+    phName:"First and Last Name", phStreet:"e.g. Example Street 12",
+    phCity:"e.g. Frankfurt", phPhone:"e.g. +49 170 1234567",
+    payTitle:"Payment on Delivery – Cash Only",
+    payText:"Please have the amount ready in cash. No card payment available. Driver will give change.",
+    summary:"Order Summary", total:"Total",
+    btn:"Order now via WhatsApp",
+    track:"Track my order",
+    trackSub:"Already ordered? Track your delivery live.",
+    footer:"© Like Ammas Food · South Indian Cuisine · Made fresh daily with love 🌺",
+    statusEmpty:"Please select portions",
+    warnName:"⚠️ Please enter your name",
+    warnStreet:"⚠️ Please enter your street",
+    warnPLZ:"⚠️ Please enter postal code",
+    warnCity:"⚠️ Please enter your city",
+    warnPhone:"⚠️ Please enter WhatsApp number",
+    waMsg:"Hello Like Ammas Food! 🙏\nMy order:\n\n",
+    waDays:"Day", waPortions:"Portion", waPortionsP:"Portions",
+    waPrice:"Price/Portion", waDel:"Delivery Fee", waTotal:"Total",
+    waName:"Name", waAddr:"Address", waWA:"WhatsApp",
+    waThanks:"Thank you! 🌺",
+    confirmTitle:"Order received!",
+    confirmSub:"WhatsApp will open shortly.",
+    confirmNr:"Your Customer Number",
+    confirmNote:"Please note for inquiries",
+    confirmTrack:"🚴 Track my delivery",
+    confirmClose:"Closes in 8 seconds",
+    ratingToast:"⭐ Thank you for your rating!"
+  }
+};
+
+function setLang(lang){
+  currentLang=lang;
+  document.getElementById('btn-de').classList.toggle('active',lang==='de');
+  document.getElementById('btn-en').classList.toggle('active',lang==='en');
+  const t=TEXTS[lang];
+  document.getElementById('t-tag').textContent=t.tag;
+  document.getElementById('t-title').innerHTML=t.title;
+  document.getElementById('t-sub').textContent=t.sub;
+  document.getElementById('t-time').textContent=t.time;
+  document.getElementById('t-time-l').textContent=t.timeL;
+  document.getElementById('t-days').textContent=t.days;
+  document.getElementById('t-days-l').textContent=t.daysL;
+  document.getElementById('t-area').textContent=t.area;
+  document.getElementById('t-area-l').textContent=t.areaL;
+  document.getElementById('t-pay').textContent=t.pay;
+  document.getElementById('t-pay-l').textContent=t.payL;
+  document.getElementById('t-pricing').textContent=t.pricing;
+  document.getElementById('t-4d').textContent=t["4d"];
+  document.getElementById('t-3d').textContent=t["3d"];
+  document.getElementById('t-2d').textContent=t["2d"];
+  document.getElementById('t-1d').textContent=t["1d"];
+  ['del2','del3','del4'].forEach(id=>document.getElementById('t-'+id).textContent=t.del);
+  document.getElementById('t-instr').innerHTML=t.instr;
+  document.getElementById('t-menu').textContent=t.menu;
+  document.getElementById('tag-Mo').textContent=t.tagMo;
+  document.getElementById('tag-Di').textContent=t.tagDi;
+  document.getElementById('tag-Mi').textContent=t.tagMi;
+  document.getElementById('tag-Do').textContent=t.tagDo;
+  document.getElementById('desc-Mo').textContent=t.descMo;
+  document.getElementById('desc-Di').textContent=t.descDi;
+  document.getElementById('desc-Mi').textContent=t.descMi;
+  document.getElementById('desc-Do').textContent=t.descDo;
+  document.querySelectorAll('.portion-label').forEach(el=>el.textContent=t.port);
+  document.getElementById('t-delivery').textContent=t.delivery;
+  document.getElementById('l-name').textContent=t.lName;
+  document.getElementById('l-street').textContent=t.lStreet;
+  document.getElementById('l-plz').textContent=t.lPLZ;
+  document.getElementById('l-city').textContent=t.lCity;
+  document.getElementById('l-phone').textContent=t.lPhone;
+  document.getElementById('customerName').placeholder=t.phName;
+  document.getElementById('customerStreet').placeholder=t.phStreet;
+  document.getElementById('customerCity').placeholder=t.phCity;
+  document.getElementById('customerPhone').placeholder=t.phPhone;
+  document.getElementById('t-pay-title').textContent=t.payTitle;
+  document.getElementById('t-pay-text').textContent=t.payText;
+  document.getElementById('t-summary').textContent=t.summary;
+  document.getElementById('t-total').textContent=t.total;
+  document.getElementById('t-btn').textContent=t.btn;
+  document.getElementById('t-track').textContent=t.track;
+  document.getElementById('t-track-sub').textContent=t.trackSub;
+  document.getElementById('t-footer').textContent=t.footer;
+  updateAll();
+}
+
+// ── COUNTDOWN ──
+function updateCountdown(){
+  const t=TEXTS[currentLang];
+  const now=new Date();
+  const dow=now.getDay();
+  const menu=[
+    {day:1,name:TEXTS.de.tagMo,nameEn:TEXTS.en.tagMo,dish:'Biryani'},
+    {day:2,name:TEXTS.de.tagDi,nameEn:TEXTS.en.tagDi,dish:'Idli mit Sambar'},
+    {day:3,name:TEXTS.de.tagMi,nameEn:TEXTS.en.tagMi,dish:'Reis & Chutney'},
+    {day:4,name:TEXTS.de.tagDo,nameEn:TEXTS.en.tagDo,dish:'Chapati'},
+  ];
+  const bar=document.getElementById('countdownBar');
+  const today=menu.find(m=>m.day===dow);
+  if(today){
+    const dName=currentLang==='de'?today.name:today.nameEn;
+    bar.textContent=`🎉 ${currentLang==='de'?'Heute':'Today'}: ${today.dish} (${dName}) – ${currentLang==='de'?'Jetzt bestellen!':'Order now!'}`;
+  } else {
+    let next=null;
+    for(let i=1;i<=7;i++){
+      const d=(dow+i)%7;
+      const f=menu.find(m=>m.day===d);
+      if(f){next={...f,daysAway:i};break;}
+    }
+    if(next){
+      const dName=currentLang==='de'?next.name:next.nameEn;
+      bar.innerHTML=currentLang==='de'
+        ? `⏳ Noch <strong>${next.daysAway}</strong> Tag${next.daysAway>1?'e':''} bis ${next.dish} (${dName})`
+        : `⏳ <strong>${next.daysAway}</strong> day${next.daysAway>1?'s':''} until ${next.dish} (${dName})`;
+    }
+  }
+}
+
+// ── RATINGS ──
+async function loadRatings(){
+  try{
+    const r=window.fbGet?await window.fbGet(RATINGS_KEY):await window.storage.get(RATINGS_KEY,true).catch(()=>null);
+    if(r&&r.value)ratings=JSON.parse(r.value);
+  }catch(e){}
+  renderRatings();
+}
+function renderRatings(){
+  ['Mo','Di','Mi','Do'].forEach(day=>{
+    const r=ratings[day];
+    const starsEl=document.getElementById('stars-'+day);
+    const avgEl=document.getElementById('avg-'+day);
+    const cntEl=document.getElementById('cnt-'+day);
+    if(!starsEl)return;
+    if(r&&r.count>0){
+      const avg=r.total/r.count;
+      avgEl.textContent=avg.toFixed(1);
+      cntEl.textContent='('+r.count+')';
+      starsEl.querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('filled',i<Math.round(avg)));
+    }
+  });
+}
+async function rateDish(e,day){
+  const star=e.target.closest('.star');if(!star)return;
+  const val=parseInt(star.dataset.v);
+  if(!ratings[day])ratings[day]={total:0,count:0};
+  ratings[day].total+=val;ratings[day].count+=1;
+  try{
+    if(window.fbSet)await window.fbSet(RATINGS_KEY,JSON.stringify(ratings));
+    else await window.storage.set(RATINGS_KEY,JSON.stringify(ratings),true).catch(()=>{});
+  }catch(err){}
+  renderRatings();
+  showToast(TEXTS[currentLang].ratingToast);
+}
+
+// ── QTY ──
+function changeQty(day,delta){qtys[day]=Math.max(0,qtys[day]+delta);updateAll();}
+
+function updateAll(){
+  const t=TEXTS[currentLang];
+  const active=Object.keys(qtys).filter(d=>qtys[d]>0).length;
+  const ppp=getPPP(active);
+  Object.keys(qtys).forEach(day=>{
+    const q=qtys[day];
+    document.getElementById('qty-'+day).textContent=q;
+    const card=document.getElementById('card-'+day);
+    const tel=document.getElementById('total-'+day);
+    if(q>0){
+      card.classList.add('active');
+      tel.textContent=q+' × '+ppp.toFixed(2).replace('.',',')+' € = '+(q*ppp).toFixed(2).replace('.',',')+' €';
+    }else{card.classList.remove('active');tel.textContent='';}
+  });
+  ['1','2','3','4'].forEach(i=>document.getElementById('tier-'+i).classList.remove('active'));
+  if(active>=4)document.getElementById('tier-4').classList.add('active');
+  else if(active===3)document.getElementById('tier-3').classList.add('active');
+  else if(active===2)document.getElementById('tier-2').classList.add('active');
+  else if(active===1)document.getElementById('tier-1').classList.add('active');
+
+  const totalP=Object.values(qtys).reduce((a,b)=>a+b,0);
+  const grand=totalP*ppp+(active>0?2.5:0);
+  const name=document.getElementById('customerName').value.trim();
+  const street=document.getElementById('customerStreet').value.trim();
+  const plz=document.getElementById('customerPLZ').value.trim();
+  const city=document.getElementById('customerCity').value.trim();
+  const phone=document.getElementById('customerPhone').value.trim();
+  document.getElementById('customerName').classList.toggle('valid',name.length>1);
+  document.getElementById('customerStreet').classList.toggle('valid',street.length>3);
+  document.getElementById('customerPLZ').classList.toggle('valid',plz.length===5);
+  document.getElementById('customerCity').classList.toggle('valid',city.length>1);
+  document.getElementById('customerPhone').classList.toggle('valid',phone.length>6);
+
+  const sb=document.getElementById('summaryBox');
+  const inner=sb.querySelector('div');
+  if(active>0){
+    sb.classList.add('visible');
+    let lines='';
+    Object.keys(qtys).forEach(day=>{
+      if(qtys[day]>0){
+        const dName=currentLang==='de'?DAYS[day].name:TEXTS.en['tag'+day.charAt(0).toUpperCase()+day.slice(1)] || DAYS[day].name;
+        lines+=`<div class="summary-line">${dName}: <span>${qtys[day]}× ${DAYS[day].dish}</span><span>${(qtys[day]*ppp).toFixed(2).replace('.',',')} €</span></div>`;
+      }
+    });
+    lines+=`<div class="summary-line">${t.waDel}: <span></span><span>2,50 €</span></div>`;
+    inner.querySelector('#summaryLines').innerHTML=lines;
+    inner.querySelector('#summaryTotal').textContent=grand.toFixed(2).replace('.',',')+' €';
+    inner.querySelector('#summaryNote').textContent=active+' '+(currentLang==='de'?'Tag':'day')+(active>1?(currentLang==='de'?'e':'s'):'')+' → '+ppp.toFixed(2).replace('.',',')+' €/'+t.waPortions;
+  }else sb.classList.remove('visible');
+
+  const ready=active>0&&name.length>1&&street.length>3&&plz.length===5&&city.length>1&&phone.length>6;
+  const sm=document.getElementById('statusMsg');
+  sm.className='status-msg';
+  if(active===0){sm.textContent=t.statusEmpty;}
+  else if(!name){sm.textContent=t.warnName;sm.classList.add('warn');}
+  else if(street.length<=3){sm.textContent=t.warnStreet;sm.classList.add('warn');}
+  else if(plz.length!==5){sm.textContent=t.warnPLZ;sm.classList.add('warn');}
+  else if(city.length<=1){sm.textContent=t.warnCity;sm.classList.add('warn');}
+  else if(phone.length<=6){sm.textContent=t.warnPhone;sm.classList.add('warn');}
+  else{sm.textContent='✅ '+t.total+': '+grand.toFixed(2).replace('.',',')+' €';sm.classList.add('ready');}
+  document.getElementById('orderBtn').disabled=!ready;
+  updateCountdown();
+}
+
+// ── SEND ORDER ──
+async function saveOrderToDashboard(orderData){
+  try{
+    let orders=[];
+    const r=window.fbGet?await window.fbGet(STORAGE_KEY):await window.storage.get(STORAGE_KEY,true).catch(()=>null);
+    if(r&&r.value)orders=JSON.parse(r.value);
+    orders.unshift(orderData);
+    if(window.fbSet)await window.fbSet(STORAGE_KEY,JSON.stringify(orders));
+    else await window.storage.set(STORAGE_KEY,JSON.stringify(orders),true).catch(()=>{});
+  }catch(e){}
+}
+
+async function sendOrder(){
+  const t=TEXTS[currentLang];
+  const active=Object.keys(qtys).filter(d=>qtys[d]>0).length;
+  const ppp=getPPP(active);
+  const totalP=Object.values(qtys).reduce((a,b)=>a+b,0);
+  const grand=(totalP*ppp+2.5).toFixed(2).replace('.',',');
+  const name=document.getElementById('customerName').value.trim();
+  const street=document.getElementById('customerStreet').value.trim();
+  const plz=document.getElementById('customerPLZ').value.trim();
+  const city=document.getElementById('customerCity').value.trim();
+  const phone=document.getElementById('customerPhone').value.trim();
+  let msg=t.waMsg;
+  Object.keys(qtys).forEach(day=>{
+    if(qtys[day]>0)msg+=`🗓️ *${DAYS[day].name}*: ${qtys[day]} ${qtys[day]>1?t.waPortionsP:t.waPortions} – ${DAYS[day].dish}
+`;
+  });
+  msg+=`
+💰 *${t.waPrice}*: ${ppp.toFixed(2).replace('.',',')} € (${active} ${active>1?t.waDays+'e':t.waDays})
+`;
+  msg+=`🚚 *${t.waDel}*: 2,50 €
+💳 *${t.waTotal}*: ${grand} €
+`;
+  msg+=`
+👤 *${t.waName}*: ${name}
+🏠 *${t.waAddr}*: ${street}, ${plz} ${city}
+📱 *${t.waWA}*: ${phone}
+
+${t.waThanks}`;
+
+  const activeDays=Object.keys(qtys).filter(d=>qtys[d]>0);
+  for(const day of activeDays){
+    await saveOrderToDashboard({
+      id:Date.now()+Math.random(), name, phone,
+      address:`${street}, ${plz} ${city}`,
+      dishes:[{day:DAYS[day].name,dish:DAYS[day].dish,portions:qtys[day]}],
+      price:grand+' €', status:'neu',
+      time:new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})
+    });
+  }
+
+  showConfirmation(name,phone,t);
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+function showConfirmation(name,phone,t){
+  const kundenNr=phone?phone.replace(/[^0-9]/g,'').replace(/^49/,'0').replace(/^0049/,'0'):'–';
+  const bd=document.createElement('div');
+  bd.className='confirm-backdrop';
+  bd.onclick=()=>{bd.remove();div.remove();};
+  const div=document.createElement('div');
+  div.className='confirm-popup';
+  div.innerHTML=`
+    <div style="font-size:52px;margin-bottom:12px;">✅</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--ink);margin-bottom:6px;">${t.confirmTitle}</div>
+    <div style="font-size:12px;color:var(--ink-soft);margin-bottom:18px;">${t.confirmSub}</div>
+    <div style="background:var(--ink);border-radius:14px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:4px;">${t.confirmNr}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold-pale);letter-spacing:2px;">${kundenNr}</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">${t.confirmNote}</div>
+    </div>
+    <a href="tracking.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--ink);padding:12px 22px;border-radius:50px;font-size:13px;font-weight:600;text-decoration:none;font-family:'DM Sans',sans-serif;margin-bottom:10px;">${t.confirmTrack}</a>
+    <div style="font-size:11px;color:var(--ink-soft);">${t.confirmClose}</div>`;
+  document.body.appendChild(bd);
+  document.body.appendChild(div);
+  setTimeout(()=>{bd.remove();div.remove();},8000);
+}
+
+function showToast(m){
+  let t=document.getElementById('_toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='_toast';
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--ink);color:white;padding:10px 22px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;transition:all 0.25s;pointer-events:none;z-index:9999;white-space:nowrap;font-family:DM Sans,sans-serif;';
+    document.body.appendChild(t);
+  }
+  t.textContent=m;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(10px)';},2500);
+}
+
+loadRatings();
+updateAll();
+</script>
+</body>
+</html>
