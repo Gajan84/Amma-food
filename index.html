@@ -764,7 +764,7 @@ const TEXTS = {
     waDays:"Tag", waPortions:"Portion", waPortionsP:"Portionen",
     waPrice:"Preis/Portion", waDel:"Liefergebühr", waTotal:"Gesamt",
     waName:"Name", waAddr:"Adresse", waWA:"WhatsApp",
-    waThanks:"Vielen Dank! \uD83C\uDF3A",
+    waThanks:"Vielen Dank! 🌺\n_Like Amma's Food – Frisch gekocht mit Liebe_ 🌺",
     confirmTitle:"Bestellung eingegangen!",
     confirmSub:"WhatsApp wird gleich geöffnet.",
     confirmNr:"Deine Kundennummer",
@@ -1020,7 +1020,7 @@ function updateAll(){
   else if(active===1)document.getElementById('tier-1').classList.add('active');
 
   const totalP=Object.values(qtys).reduce((a,b)=>a+b,0);
-  const grand=totalP*ppp+(active*2.5);
+  const grand=(totalP*ppp+(active*2.5)).toFixed(2).replace('.',',');
   const name=document.getElementById('customerName').value.trim();
   const street=document.getElementById('customerStreet').value.trim();
   const plz=document.getElementById('customerPLZ').value.trim();
@@ -1102,7 +1102,7 @@ async function sendOrder(){
   msg+=`
 💰 *${t.waPrice}*: ${ppp.toFixed(2).replace('.',',')} € (${active} ${dl})
 `;
-  msg+=`🚚 *${t.waDel}*: 2,50 €
+  msg+=`🚚 *${t.waDel}*: ${(active*2.5).toFixed(2).replace('.',',')} € (${active}×)
 💳 *${t.waTotal}*: ${grand} €
 `;
   const firstName=name.trim().split(' ')[0];
